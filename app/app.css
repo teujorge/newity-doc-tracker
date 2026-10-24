@@ -139,3 +139,13 @@
     @apply font-sans;
   }
 }
+/* Printing (e.g. Weekly Summary → Save as PDF): drop the app chrome, keep the page content. */
+@media print {
+  [data-slot="sidebar"],
+  [data-slot="sidebar-gap"],
+  [data-slot="sidebar-container"],
+  [data-slot="app-header"],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}
