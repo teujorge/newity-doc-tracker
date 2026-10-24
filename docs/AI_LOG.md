@@ -40,7 +40,7 @@ How AI (Claude Code, running Claude Opus as an agent in the Claude desktop app) 
   4. Alerts scheduler (localStorage rules, toast + bell inbox)
 - Integration, type-checking and browser verification done by the lead agent afterwards.
 
-_Review notes / corrections:_ (filled in during integration — see section 6)
+Each sub-agent returned a written report: what it built, how it verified it (curl, typecheck, browser), deviations, and shared-file changes it *recommended but was not allowed to make*. Those recommendations were reviewed and applied centrally — see section 6.
 
 ## 4. Testing
 
@@ -54,4 +54,11 @@ _Review notes / corrections:_ (filled in during integration — see section 6)
 
 ## 6. Where I pushed back / caught issues
 
-- _(updated during integration)_
+- **Remix ≠ Remix anymore.** My initial ask was "use create-remix". AI checked the live docs and flagged that today's Remix 3 isn't React (shadcn wouldn't work) — switched to React Router framework mode before writing any code.
+- **Tests caught a design gap.** The tests sub-agent found that marking a Pending bank statement "Expired" invented a received date and a future expiry, so the doc immediately showed as a status conflict. Fixed in `applyDocumentUpdate` + regression test.
+- **Business rule moved to the right layer.** The Applications agent put an "expired doc re-received → date it today" rule inside its route action. Moved into the shared domain function so every write path behaves the same.
+- **A failing test exposed an over-broad rule.** After moving it, an existing test failed: moving an auto-expired doc from Received → *Under Review* was re-dating it. That's a review, not a new copy — narrowed the rule (only "Received", or moving off a stored "Expired") and added tests for each case.
+- **Clearing an expiration date was ignored** (reported by the Applications agent) → explicit clear now recalculates for time-sensitive docs.
+- **Dev-server flake.** Recharts being discovered at runtime caused a one-off duplicate-React crash; pre-bundled heavy deps in `vite.config.ts`.
+- **Layout overflow** at ~1024px reported by an agent → `min-w-0` on the app shell.
+- **Verified in a real browser, not just by agents' word:** every page, a live status edit (confirmed the CSV row changed on disk), the alert "Run now" toast + bell badge, and a fresh-load console check with zero errors.
