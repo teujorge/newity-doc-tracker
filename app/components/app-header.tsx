@@ -18,15 +18,19 @@ import { SidebarTrigger } from "~/components/ui/sidebar";
  */
 export interface RouteHandle {
   breadcrumb?: string | ((data: any) => string);
+  /** Crumb shown before this one, for routes that aren't nested in the URL tree (e.g. detail pages). */
+  parent?: { label: string; to: string };
 }
 
 export function AppHeader({ children }: { children?: ReactNode }) {
   const matches = useMatches();
   const crumbs = matches
     .filter((m) => (m.handle as RouteHandle | undefined)?.breadcrumb)
-    .map((m) => {
-      const b = (m.handle as RouteHandle).breadcrumb!;
-      return { to: m.pathname, label: typeof b === "function" ? b(m.loaderData) : b };
+    .flatMap((m) => {
+      const handle = m.handle as RouteHandle;
+      const b = handle.breadcrumb!;
+      const crumb = { to: m.pathname, label: typeof b === "function" ? b(m.loaderData) : b };
+      return handle.parent ? [handle.parent, crumb] : [crumb];
     });
 
   return (
