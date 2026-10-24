@@ -7,4 +7,8 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  // Pre-bundle so first load doesn't re-optimize mid-session (caused a duplicate-React error).
+  optimizeDeps: {
+    include: ["recharts", "@tanstack/react-table", "papaparse"],
+  },
 });

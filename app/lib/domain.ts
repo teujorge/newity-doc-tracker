@@ -372,13 +372,32 @@ export function applyDocumentUpdate(doc: DocumentRecord, update: DocumentUpdate,
     return next;
   }
 
-  const receivedChanged = update.dateReceived !== undefined && update.dateReceived !== doc.dateReceived;
-  next.dateReceived = (update.dateReceived !== undefined ? update.dateReceived : doc.dateReceived) || asOf;
+  // Expired: keep whatever dates are on file (or explicitly given) — don't invent a fresh receipt.
+  if (update.status === "Expired") {
+    if (update.dateReceived !== undefined) next.dateReceived = update.dateReceived;
+    if (update.expirationDate !== undefined) next.expirationDate = update.expirationDate;
+    return next;
+  }
+
+  // An expired doc marked Received (or moved off a stored "Expired") without a date means a fresh copy
+  // came in today. Reviewing/approving a doc that merely passed its date is not a new copy.
+  // (A stored "Expired" whose expiration is still in the future is a correction — keep its dates.)
+  const wasExpired = doc.expirationDate ? doc.expirationDate < asOf : doc.status === "Expired";
+  const freshCopy = wasExpired && (doc.status === "Expired" || update.status === "Received");
+  const dateReceived =
+    update.dateReceived !== undefined ? update.dateReceived : freshCopy ? asOf : doc.dateReceived;
+  const receivedChanged = dateReceived !== doc.dateReceived;
+  next.dateReceived = dateReceived || asOf;
 
   if (update.expirationDate) {
     next.expirationDate = update.expirationDate;
-  } else if (isTimeSensitive(doc.documentType) && (receivedChanged || !doc.expirationDate)) {
-    next.expirationDate = computeExpirationDate(doc.documentType, next.dateReceived);
+  } else if (isTimeSensitive(doc.documentType)) {
+    // Explicitly cleared, received date changed, or nothing on file ⇒ recalculate.
+    if (update.expirationDate === null || receivedChanged || !doc.expirationDate) {
+      next.expirationDate = computeExpirationDate(doc.documentType, next.dateReceived);
+    }
+  } else if (update.expirationDate === null) {
+    next.expirationDate = null;
   }
   return next;
 }

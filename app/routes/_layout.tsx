@@ -17,12 +17,12 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
   return (
     <SidebarProvider>
       <AppSidebar stalledCount={loaderData.stalledCount} />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <AppHeader>
           <AsOfPicker asOf={loaderData.asOf} />
           <AlertsBell />
         </AppHeader>
-        <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-6 p-4 md:p-6">
           <Outlet />
         </div>
       </SidebarInset>
