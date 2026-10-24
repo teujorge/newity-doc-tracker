@@ -8,3 +8,6 @@
 
 # Working copy of the CSV database (seeded from docs/ on first run)
 /data/
+
+.vercel
+.env*

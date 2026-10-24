@@ -4,6 +4,8 @@ A browser tool that replaces the loan operations team's shared spreadsheet for t
 
 Built as a 3–4 hour MVP for the NEWITY Product Engineer take-home.
 
+**Live demo:** https://newity-doc-tracker.vercel.app. Edits there are temporary (see [Deployment](#deployment)).
+
 ## Quick start (under 5 minutes)
 
 Requirements: **Node.js 20+** (tested on Node 24) and npm.
@@ -65,6 +67,12 @@ app/
   features/alerts/           front-end alert scheduler, store, bell
 docs/                        brief, sample CSV (seed), AI usage log
 ```
+
+## Deployment
+
+- Deployed on **Vercel**. The project is connected to this GitHub repo, so every push to `main` deploys to production. Vercel detects React Router automatically with no configuration.
+- The Vercel React Router preset (`@vercel/react-router`) is **not** used yet. Its current release (1.3.7) only supports React Router v7, and this app is on v8. The preset is optional; the app builds and runs without it.
+- **The deployed data is temporary.** The working CSV lives in the server's `/tmp` and resets to the sample data whenever Vercel starts a fresh instance. That's fine for a single person trying the demo, not for shared use. Locally, edits persist in `data/documents.csv`.
 
 ## Scope decisions
 
