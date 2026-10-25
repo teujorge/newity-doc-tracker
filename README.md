@@ -64,7 +64,7 @@ app/
   routes/_layout.tsx       sidebar + header shared by every page
   components/              shared UI (data table, page header, badges, CSV export)
   features/alerts/         in-browser alert scheduler, store and bell
-docs/                      brief, sample CSV (seed), demo script, AI usage log
+docs/                      brief, sample CSV (seed), demo video + script, AI usage log + full history
 ```
 
 ## Deployment
@@ -96,7 +96,13 @@ Chosen not to build, to fit the time box:
 2. **Server-side email** for expiry alerts and the Monday summary, reusing the alert rules.
 3. **Iterate with the three users:** borrower follow-up tracking ("requested on / reminder sent"), sign-in with roles, a design pass.
 
-## More
+## Submission files (`docs/`)
 
-- [docs/DEMO.md](docs/DEMO.md): the demo walkthrough.
-- [docs/AI_LOG.md](docs/AI_LOG.md): how AI was used across the project.
+| File | What it is |
+|---|---|
+| Demo video | The 5–10 minute recorded walkthrough for stakeholders. |
+| [DEMO.md](docs/DEMO.md) | The cue sheet used while recording the demo. |
+| [AI_LOG.md](docs/AI_LOG.md) | How AI was used across the project, by phase: understanding, scoping, building, testing, documentation. |
+| [ai-conversation/](docs/ai-conversation/) | The full AI conversation history behind that log: `conversation.md` to read, `conversation.json` for the structured version. |
+| `NEWITY_Assessment_A_Document_Checklist.docx` | The original brief. |
+| `NEWITY_Sample_Data_A_Document_Checklist.csv` | The sample data, which is also the app's seed data. |
