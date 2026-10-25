@@ -1,6 +1,9 @@
 // Shared types for the in-app alerts feature (client scheduler + /api/alerts).
 
-export type AlertKind = "expiring-documents" | "stalled-applications" | "weekly-summary";
+export type AlertKind =
+  | "expiring-documents"
+  | "stalled-applications"
+  | "weekly-summary";
 export type AlertFrequency = "every-minute" | "daily" | "weekly";
 
 export interface AlertRule {
@@ -42,8 +45,8 @@ export interface AlertDocumentItem {
   applicationId: string;
   businessName: string;
   documentType: string;
-  expirationDate: string;
-  daysUntilExpiration: number;
+  expirationDate: string | null;
+  daysUntilExpiration: number | null;
   processor: string;
 }
 

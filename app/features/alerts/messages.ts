@@ -19,7 +19,16 @@ function listWithMore<T>(items: T[], render: (item: T) => string): string {
   return more > 0 ? `${shown}; and ${more} more` : shown;
 }
 
-const docLine = (d: AlertDocumentItem) => `${d.businessName}: ${d.documentType} (${shortDate(d.expirationDate)})`;
+const docLine = (d: AlertDocumentItem) =>
+  `${d.businessName}: ${d.documentType}${d.expirationDate ? ` (${shortDate(d.expirationDate)})` : ""}`;
+
+/** "Expired" = effective status: past its expiration date or marked Expired in the tracker. */
+function expiredSentence(count: number): string {
+  if (count === 0) return "";
+  return count === 1
+    ? "1 document is expired (past its expiration date or marked Expired) and needs a fresh copy."
+    : `${count} documents are expired (past their expiration date or marked Expired) and need fresh copies.`;
+}
 
 export function buildNotification(rule: AlertRule, data: AlertsData): NotificationDraft {
   const href = KIND_INFO[rule.kind].href;
@@ -29,9 +38,7 @@ export function buildNotification(rule: AlertRule, data: AlertsData): Notificati
     case "expiring-documents": {
       const window = rule.windowDays ?? data.windowDays;
       const { expiring, expired } = data;
-      const expiredNote = expired.length
-        ? `${pluralize(expired.length, "document has", "documents have")} already expired and need${expired.length === 1 ? "s" : ""} replacing.`
-        : "";
+      const expiredNote = expiredSentence(expired.length);
       if (expiring.length === 0) {
         return {
           ...base,

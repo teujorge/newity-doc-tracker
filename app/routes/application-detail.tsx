@@ -15,6 +15,7 @@ import {
   deriveDocuments,
   isDocumentStatus,
   normalizeDate,
+  validateReceivedDate,
   summarizeApplication,
 } from "~/lib/domain";
 import type { Route } from "./+types/application-detail";
@@ -62,8 +63,11 @@ export async function action({ request, params }: Route.ActionArgs) {
     if (!iso) errors[field] = `${label} isn't a valid date.`;
     return iso;
   };
+  const asOf = await getAsOf(request);
   const dateReceived = readDate("dateReceived", "Date received");
   const expirationDate = readDate("expirationDate", "Expiration date");
+  const futureReceived = validateReceivedDate(dateReceived, asOf);
+  if (futureReceived) errors.dateReceived = futureReceived;
   if (dateReceived && expirationDate && expirationDate < dateReceived) {
     errors.expirationDate = "Expiration date can't be before the date received.";
   }
@@ -73,7 +77,6 @@ export async function action({ request, params }: Route.ActionArgs) {
   const current = (await readApplicationDocuments(params.applicationId)).find((d) => d.id === documentId);
   if (!current) return fail({ form: "That document isn't on this application." }, 404);
 
-  const asOf = await getAsOf(request);
   const update: DocumentUpdate = { status };
   if (dateReceived !== undefined) update.dateReceived = dateReceived;
   if (expirationDate !== undefined) update.expirationDate = expirationDate;

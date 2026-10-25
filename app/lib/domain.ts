@@ -349,6 +349,15 @@ export interface DocumentUpdate {
   notes?: string;
 }
 
+/**
+ * A received date records something that already happened, so it can't be after the as-of date
+ * (the app's "today"). Returns a user-facing error message, or null when valid / empty.
+ */
+export function validateReceivedDate(dateReceived: string | null | undefined, asOf: string): string | null {
+  if (!dateReceived || dateReceived <= asOf) return null;
+  return `Date received can't be in the future (after ${formatDisplayDate(asOf)}, the as-of date).`;
+}
+
 export function isDocumentStatus(value: unknown): value is DocumentStatus {
   return typeof value === "string" && (DOCUMENT_STATUSES as readonly string[]).includes(value);
 }

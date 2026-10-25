@@ -7,6 +7,7 @@ import {
   normalizeDate,
   summarizeApplication,
   toCsvDate,
+  validateReceivedDate,
 } from "./domain";
 
 const AS_OF = "2026-02-13";
@@ -208,6 +209,16 @@ describe("summarizeApplication", () => {
     expect(s.outstandingDocs).toBe(1);
     expect(s.inProgressDocs).toBe(1);
     expect(s.totalDocs).toBe(3);
+  });
+});
+
+describe("validateReceivedDate", () => {
+  it("allows empty, past and as-of dates; rejects future ones", () => {
+    expect(validateReceivedDate(null, AS_OF)).toBeNull();
+    expect(validateReceivedDate("", AS_OF)).toBeNull();
+    expect(validateReceivedDate("2026-01-10", AS_OF)).toBeNull();
+    expect(validateReceivedDate(AS_OF, AS_OF)).toBeNull();
+    expect(validateReceivedDate("2026-02-14", AS_OF)).toMatch(/can't be in the future/);
   });
 });
 

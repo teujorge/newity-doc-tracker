@@ -89,7 +89,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
           label="Expired documents"
           value={s.expiredDocuments}
           detail="documents"
-          helper="Past their expiration date. These count as missing until replaced."
+          helper="Past their expiration date or marked Expired. These count as missing until replaced."
           to="/documents?expiration=expired"
           tone={s.expiredDocuments > 0 ? "danger" : "default"}
         />

@@ -107,7 +107,7 @@ export default function WeeklySummary({ loaderData }: Route.ComponentProps) {
           <ReportStat
             label="Expiring / expired"
             value={`${s.expiringSoonDocuments} / ${s.expiredDocuments}`}
-            detail={`Expiring in ${EXPIRING_SOON_DAYS} days / already expired`}
+            detail={`Expiring in ${EXPIRING_SOON_DAYS} days / expired (past date or marked Expired)`}
           />
         </div>
       </ReportSection>

@@ -13,7 +13,8 @@ export const FREQUENCY_LABELS: Record<AlertFrequency, string> = {
 export const KIND_INFO: Record<AlertKind, { label: string; description: string; href: string }> = {
   "expiring-documents": {
     label: "Documents expiring soon",
-    description: "Lists documents that will expire within the window you choose, plus any that already have.",
+    description:
+      "Lists documents that will expire within the window you choose, plus a count of expired ones (past their date or marked Expired).",
     href: "/documents?expiration=expiring",
   },
   "stalled-applications": {

@@ -26,6 +26,7 @@ import {
   formatDisplayDate,
   isDocumentStatus,
   isTimeSensitive,
+  validateReceivedDate,
 } from "~/lib/domain";
 import {
   type DocumentFetcher,
@@ -80,6 +81,8 @@ function EditDocumentForm({ doc, fetcher }: { doc: DerivedDocument; fetcher: Doc
   const saving = fetcher.state !== "idle";
   const errors = fetcher.data && !fetcher.data.ok ? fetcher.data.errors : undefined;
   const stillExpired = !noFile && status !== "Expired" && expirationDate !== "" && expirationDate < asOf;
+  // Validate as they type so a future date never reaches the server (which checks again).
+  const receivedError = (!noFile && validateReceivedDate(dateReceived, asOf)) || errors?.dateReceived;
 
   return (
     <fetcher.Form method="post" className="grid gap-4">
@@ -111,8 +114,9 @@ function EditDocumentForm({ doc, fetcher }: { doc: DerivedDocument; fetcher: Doc
             type="date"
             name="dateReceived"
             value={noFile ? "" : dateReceived}
+            max={asOf}
             disabled={noFile}
-            aria-invalid={!!errors?.dateReceived}
+            aria-invalid={!!receivedError}
             onChange={(event) => {
               const next = event.target.value;
               setDateReceived(next);
@@ -123,7 +127,7 @@ function EditDocumentForm({ doc, fetcher }: { doc: DerivedDocument; fetcher: Doc
           <p className="text-xs text-muted-foreground">
             {noFile ? "Cleared for Pending / Not Required." : `Leave blank for today (${formatDisplayDate(asOf)}).`}
           </p>
-          <FieldError message={errors?.dateReceived} />
+          <FieldError message={receivedError || undefined} />
         </div>
 
         <div className="grid content-start gap-1.5">
@@ -167,7 +171,7 @@ function EditDocumentForm({ doc, fetcher }: { doc: DerivedDocument; fetcher: Doc
       <FieldError message={errors?.form} />
 
       <DialogFooter>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving || (!noFile && !!validateReceivedDate(dateReceived, asOf))}>
           {saving && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
           {saving ? "Saving…" : "Save"}
         </Button>

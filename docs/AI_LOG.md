@@ -61,4 +61,7 @@ Each sub-agent returned a written report: what it built, how it verified it (cur
 - **Clearing an expiration date was ignored** (reported by the Applications agent) → explicit clear now recalculates for time-sensitive docs.
 - **Dev-server flake.** Recharts being discovered at runtime caused a one-off duplicate-React crash; pre-bundled heavy deps in `vite.config.ts`.
 - **Layout overflow** at ~1024px reported by an agent → `min-w-0` on the app shell.
+- **My own QA pass found two things the agents missed** (fixed after):
+  - `/api/alerts` counted "expired" by date only (6) while every other screen used effective status (41), so the alert disagreed with the dashboard. Alerts now reuse the same `selectExpired` selector, and the copy says "past their expiration date or marked Expired" everywhere.
+  - The edit dialog accepted a *future* "date received". Now rejected on both client (picker capped at the as-of date, inline error, Save disabled) and server (shared `validateReceivedDate` rule).
 - **Verified in a real browser, not just by agents' word:** every page, a live status edit (confirmed the CSV row changed on disk), the alert "Run now" toast + bell badge, and a fresh-load console check with zero errors.
