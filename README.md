@@ -4,7 +4,9 @@ A browser tool that replaces the loan operations team's shared spreadsheet for t
 
 Built as a 3–4 hour MVP for the NEWITY Product Engineer take-home.
 
-**Live demo:** https://newity-doc-tracker.vercel.app (edits there are temporary, see [Deployment](#deployment)).
+**Live app:** https://newity-doc-tracker.vercel.app (edits there are temporary, see [Deployment](#deployment)).
+
+**Demo video:** [docs/NEWITY Demo.mp4](docs/NEWITY%20Demo.mp4)
 
 ## Run it locally (under 5 minutes)
 
@@ -100,7 +102,7 @@ Chosen not to build, to fit the time box:
 
 | File | What it is |
 |---|---|
-| Demo video | The 5–10 minute recorded walkthrough for stakeholders. |
+| [NEWITY Demo.mp4](docs/NEWITY%20Demo.mp4) | The 5–10 minute recorded walkthrough for stakeholders. |
 | [DEMO.md](docs/DEMO.md) | The cue sheet used while recording the demo. |
 | [AI_LOG.md](docs/AI_LOG.md) | How AI was used across the project, by phase: understanding, scoping, building, testing, documentation. |
 | [ai-conversation/](docs/ai-conversation/) | The full AI conversation history behind that log: `conversation.md` to read, `conversation.json` for the structured version. |
