@@ -1,115 +1,102 @@
-# Doc Tracker — SBA Document Checklist
+# Doc Tracker: SBA Document Checklist
 
-A browser tool that replaces the loan operations team's shared spreadsheet for tracking SBA loan documents. It answers the team's biggest question — **"which applications are stalled waiting on documents?"** — and makes updating a document's status quicker than editing the spreadsheet.
+A browser tool that replaces the loan operations team's shared spreadsheet for tracking SBA loan documents. It answers the team's biggest question, **"which applications are stalled waiting on documents?"**, and makes updating a document quicker than editing the spreadsheet.
 
 Built as a 3–4 hour MVP for the NEWITY Product Engineer take-home.
 
-**Live demo:** https://newity-doc-tracker.vercel.app. Edits there are temporary (see [Deployment](#deployment)).
+**Live demo:** https://newity-doc-tracker.vercel.app (edits there are temporary, see [Deployment](#deployment)).
 
-## Quick start (under 5 minutes)
+## Run it locally (under 5 minutes)
 
-Requirements: **Node.js 20+** (tested on Node 24) and npm.
+**You need:** Node.js **22.22 or newer** (`node -v` to check; tested on Node 24) and npm. No database, environment variables or accounts are needed.
 
 ```bash
+git clone https://github.com/teujorge/newity-doc-tracker.git
+cd newity-doc-tracker
 npm install
 npm run dev
 ```
 
-Open **http://localhost:5173**.
+Open **http://localhost:5173**, or the URL printed in the terminal if that port is taken.
 
-- The sample CSV in `docs/` is the seed. On first run it's copied to `data/documents.csv`, and that copy is the working "database". Edits are written straight back to it.
-- **Reset demo data** (bottom of the sidebar) restores the original sample.
-- **Download all data** exports the current CSV in the original spreadsheet format.
+- **Data:** the sample CSV in `docs/` is the seed. On first run it's copied to `data/documents.csv`, which is the working "database"; edits are written straight back to it.
+- **Start over:** **Reset demo data** at the bottom of the sidebar restores the original sample.
+- **"As of" date:** the sample data stops in Feb 2026, so the app runs as of **Feb 13, 2026** by default. Switch it in the header; **Today** makes almost everything look expired.
 
 Other scripts:
 
 ```bash
-npm test           # unit tests for the business rules (Vitest)
-npm run typecheck  # route type generation + TypeScript
-npm run build && npm start   # production build on http://localhost:3000
+npm test                    # unit tests for the business rules (Vitest)
+npm run typecheck           # route types + TypeScript
+npm run build && npm start  # production build on http://localhost:3000
 ```
 
 ## What's in it
 
 | Page | For | What it does |
 |---|---|---|
-| **Dashboard** | Team lead / leadership | Pipeline health: KPIs (active, stalled, expiring, expired, completion), charts for processor workload, bottleneck document types and application health, plus "needs attention" and "upcoming expirations" lists. Each chart's data can be exported to CSV. |
-| **Applications** | Processors | One row per application with progress, outstanding count, days since last activity and a health badge (Stalled / At risk / On track / Complete). Search, filter by status and processor, export to CSV. |
-| **Application detail** | Processors | The checklist for one application. Change a status inline, or edit received date, expiration date and notes. Expiration dates fill in automatically for time-sensitive documents. |
-| **Documents** | Processors | All documents across applications (the spreadsheet view), filterable by type, status, processor and expiration, with export to CSV. |
-| **Weekly Summary** | Team lead → leadership | Replaces the manual Monday email: a print-friendly summary with **Copy as email** and **Print / Save as PDF**. |
-| **Alerts** | Everyone | Scheduled in-app alerts for expiring documents, stalled applications and the weekly summary. Each runs every minute (for the demo), daily, or weekly. Shown as toasts and in a bell inbox in the header. |
+| **Dashboard** | Team lead, leadership | KPIs, a "needs attention" list of stalled applications, and charts for processor workload, bottleneck documents, application health and upcoming expirations. |
+| **Applications** | Processors | One row per application with progress and a health badge (Stalled, At risk, On track, Complete). Search and filter by status or processor. |
+| **Application detail** | Processors | One application's checklist. Change a status in one click, or edit dates and notes. Expiration dates fill in automatically. |
+| **Documents** | Processors | Every document (the spreadsheet view), with quick filters for expiring, expired and status conflicts. |
+| **Weekly Summary** | Team lead → leadership | The Monday email, built automatically: **Copy as email** or **Print / Save as PDF**. |
+| **Alerts** | Everyone | Scheduled in-app alerts (daily, weekly, or every minute for demos) for expiring documents, stalled applications and the weekly summary, shown as pop-ups and in the header bell. |
 
-**"As of" date (header).** Every expiration and "stalled" calculation is relative to this date. The sample data stops in Feb 2026, so it defaults to **Feb 13, 2026**. Click **Today** to use the real date.
+Every table and chart exports to CSV, and **Download all data** in the sidebar exports the full sheet in its original format.
 
 ### Business rules
 
-- **Status groups:** Outstanding = Pending or Expired · In progress = Received or Under Review · Done = Approved or Not Required.
-- **Expiration windows** (confirmed against the sample data): bank statements 90 days, personal and business tax returns 3 years (1,095 days), insurance 1 year.
-- **Effective status:** a document whose expiration date has passed counts as **Expired**, even if the sheet says Received or Approved. Rows marked Expired that still have a future expiration date get a "please confirm" flag.
-- **Stalled:** the application has outstanding documents and nothing has been received in 14+ days.
+- **Expiration windows** (checked against the sample data): bank statements 90 days, tax returns 3 years, insurance 1 year.
+- **Expired:** a document past its expiration date counts as Expired even if the sheet says Received or Approved. Rows marked Expired with a future date are flagged as conflicts, not silently changed.
+- **Stalled:** outstanding documents (Pending or Expired) and nothing received in 14+ days.
 - **Expiring soon:** expires within 30 days.
 
 ## Tech and architecture
 
-- **React Router v8, framework mode** (Remix's successor for React apps). Routes use `loader` for reads and `action` for writes. Resource routes under `/api/*` serve the CSV export, as-of date, reset and alert data.
-- **shadcn/ui + Tailwind v4**, TanStack Table, Recharts (via shadcn charts), PapaParse, date-fns, Vitest.
+- **React Router v8, framework mode**, Remix's successor for React apps. Pages read with `loader` and write with `action`; `/api/*` resource routes handle CSV export, the as-of date, reset and alert data.
+- **shadcn/ui + Tailwind v4**, TanStack Table, Recharts, PapaParse, date-fns, Vitest.
 
 ```
 app/
-  lib/domain.ts              pure business rules (statuses, expiry, stalled, rollups) — unit tested
-  lib/csv-store.server.ts    the CSV "database": readDocuments / updateDocument / resetDocuments
-  lib/pipeline.server.ts     loader helper: read → derive for as-of date → summarize
-  lib/as-of.server.ts        as-of date cookie
-  routes.ts                  route config (app shell layout + pages + /api resource routes)
-  routes/_layout.tsx         sidebar + header shell shared by every page
-  components/                shared UI (data table, page header, badges, CSV export)
-  features/alerts/           front-end alert scheduler, store, bell
-docs/                        brief, sample CSV (seed), AI usage log
+  lib/domain.ts            business rules (statuses, expiry, stalled, rollups), unit tested
+  lib/csv-store.server.ts  the CSV "database": read, update, reset
+  routes.ts                route config: app shell + pages + /api routes
+  routes/_layout.tsx       sidebar + header shared by every page
+  components/              shared UI (data table, page header, badges, CSV export)
+  features/alerts/         in-browser alert scheduler, store and bell
+docs/                      brief, sample CSV (seed), demo script, AI usage log
 ```
 
 ## Deployment
 
-- Deployed on **Vercel**. The project is connected to this GitHub repo, so every push to `main` deploys to production. Vercel detects React Router automatically with no configuration.
-- The Vercel React Router preset (`@vercel/react-router`) is **not** used yet. Its current release (1.3.7) only supports React Router v7, and this app is on v8. The preset is optional; the app builds and runs without it.
-- **The deployed data is temporary.** The working CSV lives in the server's `/tmp` and resets to the sample data whenever Vercel starts a fresh instance. That's fine for a single person trying the demo, not for shared use. Locally, edits persist in `data/documents.csv`.
+Vercel, connected to this repo: every push to `main` deploys. It needs no configuration. The `@vercel/react-router` preset isn't used because it only supports React Router v7.
+
+The deployed data is temporary. The working CSV lives in the server's `/tmp` and resets whenever Vercel starts a fresh instance, which is fine for one person trying the demo.
 
 ## Scope decisions
 
-**Built (in priority order):** stalled-application visibility, document status editing (without it the tool can't replace the spreadsheet), expiration tracking with automatic dates, the leadership dashboard and weekly summary, CSV exports, demo-grade alerts.
+Built in priority order: stalled visibility, one-click status editing (without it the tool can't replace the spreadsheet), expiration tracking, the leadership summary, then demo-grade alerts.
 
-**Cut on purpose:**
-- **Auth and roles.** Three internal users, running locally.
-- **Real email.** Alerts appear in the app instead. Email needs a backend scheduler and an email provider (V2).
-- **Audit history / "last updated".** The CSV has no history column, so "stalled" is estimated from received dates.
-- **Adding or importing applications, file uploads, exporting charts as images.**
-- **Simultaneous edits.** Writes are queued within one server process, and the last write wins.
+Chosen not to build, to fit the time box:
+- **A database.** The CSV file is the database: zero setup and the team's existing format. The cost: no history, and simultaneous edits aren't safe (last write wins).
+- **Email.** It needs a server scheduler and an email provider. In-app alerts use the same rules, but they only run while the app is open in a browser, and they're stored per browser.
+- **Sign-in and roles.** Three internal users.
+- **True activity tracking.** The sheet has no "last updated" column, so "stalled" is estimated from received dates, and there are no week-over-week trends.
+- **Mobile layout, importing applications, file uploads.**
 
-## Known limitations
+## Testing
 
-- **The CSV is the database.** That's fine for one person testing locally. It isn't safe for several people editing on several servers. On serverless hosts (e.g. Vercel) the working copy lives in `/tmp` and resets.
-- **Alerts only run while the app is open in a browser tab.** Rules and notifications are stored per browser (localStorage).
-- **"Stalled" is estimated** from the most recent received date, not true activity.
-- **No week-over-week trends**, because there's no history.
+- **Unit tests** (`npm test`) on the rules most likely to be wrong: expiry math, auto-expiry, status conflicts, the 14- and 30-day cut-offs, rollups, and a CSV round-trip that reproduces the original file byte for byte.
+- **Manual QA** of every page in the browser, including a live edit checked against the CSV on disk.
+- **Before real use:** compare the KPIs with the team lead's last Monday email, and sit with one processor for a day of real updates.
 
-## QA plan
+## What's next
 
-1. **Unit tests** (`npm test`) cover the rules most likely to be wrong: expiry math, auto-expiry, status conflicts, the 30-day and 14-day boundaries, application rollups, and a CSV round-trip that must reproduce the original file byte for byte.
-2. **Manual script:**
-   - Change the as-of date and check the KPIs.
-   - Filter Applications to Stalled and spot-check one against the raw CSV.
-   - Mark a bank statement Received and confirm its expiration is +90 days.
-   - Export CSVs and open them in Excel.
-   - Print the weekly summary.
-   - Switch an alert to every minute and wait for the toast.
-3. **Before real use:**
-   - Check the KPIs against the team lead's last Monday email.
-   - Sit with one processor for a day of real updates.
-   - Load-test with 75+ applications.
+1. **A real database with an activity log:** safe simultaneous edits, a true "last activity", trends and an audit trail.
+2. **Server-side email** for expiry alerts and the Monday summary, reusing the alert rules.
+3. **Iterate with the three users:** borrower follow-up tracking ("requested on / reminder sent"), sign-in with roles, a design pass.
 
-## What's next (V2)
+## More
 
-1. **A real database plus an activity log.** Fixes simultaneous edits, gives "stalled" a true last-activity date, and enables week-over-week trends.
-2. **Server-side scheduled jobs plus email**, using the same rule logic as the in-app alerts. Expiry alerts and the Monday summary arrive even when nobody has the app open.
-3. **Borrower follow-up tracking**: "requested on / reminder sent" per document, because chasing borrowers is where documents stall.
-4. Sign-in with roles (processor vs. lead), and adding or importing new applications.
+- [docs/DEMO.md](docs/DEMO.md): the demo walkthrough.
+- [docs/AI_LOG.md](docs/AI_LOG.md): how AI was used across the project.
